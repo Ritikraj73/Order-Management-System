@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(docker-compose *)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:8080/auth/login -H \"Content-Type: application/json\" -d '{\"username\":\"test\",\"password\":\"test\"}')",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:8081/auth/login -H \"Content-Type: application/json\" -d '{\"username\":\"test\",\"password\":\"test\"}')",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:8080/api-gateway/auth/login -H \"Content-Type: application/json\" -d '{\"username\":\"test\",\"password\":\"test\"}')",
+      "Bash(curl -s -X POST http://localhost:8081/auth/register -H \"Content-Type: application/json\" -d '{\"username\":\"testuser123\",\"email\":\"test@test.com\",\"password\":\"password123\"}')",
+      "Bash(curl *)",
+      "Bash(docker exec *)"
+    ]
+  }
+}

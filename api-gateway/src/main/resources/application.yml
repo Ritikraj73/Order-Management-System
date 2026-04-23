@@ -1,0 +1,43 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: api-gateway
+  cloud:
+    gateway:
+      routes:
+        - id: auth-service
+          uri: http://oms-auth-service:8081
+          predicates:
+            - Path=/auth/**
+        - id: product-service
+          uri: http://oms-product-service:8082
+          predicates:
+            - Path=/products/**
+        - id: order-service
+          uri: http://oms-order-service:8083
+          predicates:
+            - Path=/orders/**
+        - id: inventory-service
+          uri: http://oms-inventory-service:8084
+          predicates:
+            - Path=/inventory/**
+        - id: notification-service
+          uri: http://oms-notification-service:8085
+          predicates:
+            - Path=/notifications/**
+      globalcors:
+        corsConfigurations:
+          '[/**]':
+            allowedOrigins: "*"
+            allowedMethods: "*"
+            allowedHeaders: "*"
+
+jwt:
+  secret: oms-secret-key-for-jwt-token-generation-must-be-at-least-256-bits-long
+
+logging:
+  level:
+    org.springframework.cloud.gateway: DEBUG
+    com.oms: DEBUG

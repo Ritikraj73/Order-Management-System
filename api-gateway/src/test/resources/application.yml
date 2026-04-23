@@ -1,0 +1,17 @@
+spring:
+  application:
+    name: api-gateway
+  cloud:
+    gateway:
+      routes: []
+  data:
+    redis:
+      host: localhost
+      port: 6379
+
+jwt:
+  secret: test-secret-key-for-jwt-token-generation-must-be-at-least-256-bits-long
+
+logging:
+  level:
+    org.springframework.cloud.gateway: DEBUG
