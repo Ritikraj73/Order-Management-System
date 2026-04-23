@@ -274,3 +274,9 @@ mvn verify -DskipITs=false
 
 - Actuator endpoints available at `/actuator/health` for each service
 - Correlation ID support via `X-Correlation-ID` header
+
+## Author
+
+**Ritik Raj**  
+- GitHub: https://github.com/Ritikraj73
+- LinkedIn: https://www.linkedin.com/in/ritikraj73/ 
