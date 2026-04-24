@@ -73,7 +73,7 @@ class AuthServiceTest {
                 "testuser", "encodedPassword",
                 Collections.singletonList(new org.springframework.security.core.authority.SimpleGrantedAuthority("ROLE_USER")));
         when(userDetailsService.loadUserByUsername(anyString())).thenReturn(userDetails);
-        when(jwtUtil.generateToken(any(UserDetails.class))).thenReturn("jwt-token");
+        when(jwtUtil.generateToken(any(UserDetails.class), any())).thenReturn("jwt-token");
 
         AuthResponse response = authService.register(registerRequest);
 
@@ -120,7 +120,7 @@ class AuthServiceTest {
                 "testuser", "encodedPassword",
                 Collections.singletonList(new org.springframework.security.core.authority.SimpleGrantedAuthority("ROLE_USER")));
         when(userDetailsService.loadUserByUsername(anyString())).thenReturn(userDetails);
-        when(jwtUtil.generateToken(any(UserDetails.class))).thenReturn("jwt-token");
+        when(jwtUtil.generateToken(any(UserDetails.class), any())).thenReturn("jwt-token");
 
         AuthResponse response = authService.login(loginRequest);
 

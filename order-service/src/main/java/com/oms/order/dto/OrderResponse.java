@@ -1,5 +1,6 @@
 package com.oms.order.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -20,6 +21,8 @@ public class OrderResponse {
     private String status;
     private BigDecimal totalAmount;
     private List<OrderItemDto> items;
+
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private LocalDateTime createdAt;
 
     @Data

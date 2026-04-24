@@ -9,6 +9,13 @@ function Products() {
   const [cart, setCart] = useState([])
 
   useEffect(() => {
+    const savedCart = localStorage.getItem('cart')
+    if (savedCart) {
+      setCart(JSON.parse(savedCart))
+    }
+  }, [])
+
+  useEffect(() => {
     fetchProducts()
   }, [page])
 
@@ -26,14 +33,16 @@ function Products() {
 
   const addToCart = (product) => {
     const existing = cart.find(item => item.id === product.id)
+    let newCart
     if (existing) {
-      setCart(cart.map(item =>
+      newCart = cart.map(item =>
         item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item
-      ))
+      )
     } else {
-      setCart([...cart, { ...product, quantity: 1 }])
+      newCart = [...cart, { ...product, quantity: 1 }]
     }
-    localStorage.setItem('cart', JSON.stringify(cart))
+    setCart(newCart)
+    localStorage.setItem('cart', JSON.stringify(newCart))
   }
 
   if (loading) return <div>Loading...</div>

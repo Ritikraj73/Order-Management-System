@@ -7,8 +7,6 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -23,28 +21,22 @@ public class OrderController {
     @PostMapping
     public ResponseEntity<OrderResponse> createOrder(
             @Valid @RequestBody OrderRequest request,
-            @AuthenticationPrincipal UserDetails userDetails) {
-        Long userId = extractUserId(userDetails);
-        String username = userDetails.getUsername();
+            @RequestHeader("X-User-Id") Long userId,
+            @RequestHeader("X-User-Role") String role) {
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(orderService.createOrder(userId, username, request));
+                .body(orderService.createOrder(userId, "user", request));
     }
 
     @GetMapping
-    public ResponseEntity<List<OrderResponse>> getOrders(@AuthenticationPrincipal UserDetails userDetails) {
-        Long userId = extractUserId(userDetails);
+    public ResponseEntity<List<OrderResponse>> getOrders(@RequestHeader("X-User-Id") Long userId) {
         return ResponseEntity.ok(orderService.getOrdersByUser(userId));
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<OrderResponse> getOrder(
             @PathVariable Long id,
-            @AuthenticationPrincipal UserDetails userDetails) {
-        Long userId = extractUserId(userDetails);
+            @RequestHeader("X-User-Id") Long userId) {
         return ResponseEntity.ok(orderService.getOrderById(id, userId));
     }
 
-    private Long extractUserId(UserDetails userDetails) {
-        return 1L;
-    }
 }

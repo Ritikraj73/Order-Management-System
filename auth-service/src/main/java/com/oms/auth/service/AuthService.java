@@ -59,7 +59,7 @@ public class AuthService {
         userRepository.save(user);
 
         UserDetails userDetails = userDetailsService.loadUserByUsername(user.getUsername());
-        String token = jwtUtil.generateToken(userDetails);
+        String token = jwtUtil.generateToken(userDetails, user.getId());
 
         return AuthResponse.builder()
                 .token(token)
@@ -77,11 +77,10 @@ public class AuthService {
                 )
         );
 
-        UserDetails userDetails = userDetailsService.loadUserByUsername(request.getUsername());
-        String token = jwtUtil.generateToken(userDetails);
-
         User user = userRepository.findByUsername(request.getUsername())
                 .orElseThrow();
+        UserDetails userDetails = userDetailsService.loadUserByUsername(request.getUsername());
+        String token = jwtUtil.generateToken(userDetails, user.getId());
 
         return AuthResponse.builder()
                 .token(token)

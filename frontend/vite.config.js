@@ -6,11 +6,11 @@ export default defineConfig({
   server: {
     port: 3000,
     proxy: {
-      '/auth': 'http://localhost:8081',
-      '/products': 'http://localhost:8082',
-      '/orders': 'http://localhost:8083',
-      '/inventory': 'http://localhost:8084',
-      '/notifications': 'http://localhost:8085'
+      '/auth': 'http://localhost:8080',
+      '/products': 'http://localhost:8080',
+      '/orders': 'http://localhost:8080',
+      '/inventory': 'http://localhost:8080',
+      '/notifications': 'http://localhost:8080'
     }
   }
 })

@@ -19,27 +19,27 @@ public class ProductService {
 
     private final ProductRepository productRepository;
 
-    @Cacheable(value = "products", key = "'page_'.concat(#pageable.pageNumber).concat('_').concat(#pageable.pageSize)")
+    // @Cacheable(value = "products", key = "'page_'.concat(#pageable.pageNumber).concat('_').concat(#pageable.pageSize)")
     public Page<ProductResponse> getAllProducts(Pageable pageable) {
         return productRepository.findAll(pageable).map(this::toResponse);
     }
 
-    @Cacheable(value = "products", key = "'category_'.concat(#category).concat('_page_').concat(#pageable.pageNumber)")
+    // @Cacheable(value = "products", key = "'category_'.concat(#category).concat('_page_').concat(#pageable.pageNumber)")
     public Page<ProductResponse> getProductsByCategory(String category, Pageable pageable) {
         return productRepository.findByCategory(category, pageable).map(this::toResponse);
     }
 
-    @Cacheable(value = "products", key = "'search_'.concat(#keyword).concat('_page_').concat(#pageable.pageNumber)")
+    // @Cacheable(value = "products", key = "'search_'.concat(#keyword).concat('_page_').concat(#pageable.pageNumber)")
     public Page<ProductResponse> searchProducts(String keyword, Pageable pageable) {
         return productRepository.searchByName(keyword, pageable).map(this::toResponse);
     }
 
-    @Cacheable(value = "products", key = "'filter_category_'.concat(#category).concat('_keyword_').concat(#keyword).concat('_page_').concat(#pageable.pageNumber)")
+    // @Cacheable(value = "products", key = "'filter_category_'.concat(#category).concat('_keyword_').concat(#keyword).concat('_page_').concat(#pageable.pageNumber)")
     public Page<ProductResponse> getProductsByFilters(String category, String keyword, Pageable pageable) {
         return productRepository.findByFilters(category, keyword, pageable).map(this::toResponse);
     }
 
-    @Cacheable(value = "products", key = "#id")
+    // @Cacheable(value = "products", key = "#id")
     public ProductResponse getProductById(Long id) {
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new ProductNotFoundException("Product not found: " + id));
@@ -47,7 +47,7 @@ public class ProductService {
     }
 
     @Transactional
-    @CacheEvict(value = "products", allEntries = true)
+    // @CacheEvict(value = "products", allEntries = true)
     public ProductResponse createProduct(ProductRequest request) {
         Product product = Product.builder()
                 .name(request.getName())

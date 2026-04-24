@@ -27,12 +27,6 @@ spring:
           uri: http://oms-notification-service:8085
           predicates:
             - Path=/notifications/**
-      globalcors:
-        corsConfigurations:
-          '[/**]':
-            allowedOrigins: "*"
-            allowedMethods: "*"
-            allowedHeaders: "*"
 
 jwt:
   secret: oms-secret-key-for-jwt-token-generation-must-be-at-least-256-bits-long

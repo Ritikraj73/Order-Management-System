@@ -1,5 +1,5 @@
 import React from 'react'
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
+import { BrowserRouter as Router, Routes, Route, Navigate, Link } from 'react-router-dom'
 import { AuthProvider, useAuth } from './context/AuthContext'
 import Login from './pages/Login'
 import Register from './pages/Register'
@@ -9,7 +9,11 @@ import Cart from './pages/Cart'
 import Orders from './pages/Orders'
 
 function PrivateRoute({ children, roles = [] }) {
-  const { user } = useAuth()
+  const { user, loading } = useAuth()
+
+  if (loading){
+  return <div>Loading...</div>
+  }
 
   if (!user) {
     return <Navigate to="/login" />
@@ -54,10 +58,10 @@ function Layout({ children }) {
         <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
           <h1>OMS</h1>
           <nav className="nav-links">
-            <a href="/">Products</a>
-            {user && <a href="/cart">Cart</a>}
-            {user && <a href="/orders">Orders</a>}
-            {user?.role === 'ADMIN' && <a href="/admin/products">Admin</a>}
+            <Link to="/">Products</Link>
+            {user && <Link to="/cart">Cart</Link>}
+            {user && <Link to="/orders">Orders</Link>}
+            {user?.role === 'ADMIN' && <Link to="/admin/products">Admin</Link>}
           </nav>
         </div>
         <div className="nav-links">
@@ -68,8 +72,8 @@ function Layout({ children }) {
             </>
           ) : (
             <>
-              <a href="/login">Login</a>
-              <a href="/register">Register</a>
+              <Link to="/login">Login</Link>
+              <Link to="/register">Register</Link>
             </>
           )}
         </div>

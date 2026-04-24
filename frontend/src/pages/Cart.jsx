@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import api from '../services/api'
 
 function Cart() {
+  const navigate = useNavigate()
   const [cart, setCart] = useState([])
   const [placing, setPlacing] = useState(false)
 
@@ -46,7 +48,7 @@ function Cart() {
       setCart([])
       localStorage.removeItem('cart')
       alert('Order placed successfully!')
-      window.location.href = '/orders'
+      navigate('/orders')
     } catch (err) {
       alert('Failed to place order: ' + (err.response?.data?.message || err.message))
     } finally {
@@ -58,7 +60,7 @@ function Cart() {
     return (
       <div style={{ textAlign: 'center', padding: '50px' }}>
         <h2>Your cart is empty</h2>
-        <button className="btn btn-primary" onClick={() => window.location.href = '/'}>
+        <button className="btn btn-primary" onClick={() => navigate('/')}>
           Continue Shopping
         </button>
       </div>
