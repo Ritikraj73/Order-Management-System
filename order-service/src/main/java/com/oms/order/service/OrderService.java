@@ -65,6 +65,7 @@ public class OrderService {
 
             OrderItem orderItem = OrderItem.builder()
                     .productId(itemRequest.getProductId())
+                    .productName(product.getName())
                     .quantity(itemRequest.getQuantity())
                     .price(product.getPrice())
                     .build();
@@ -116,6 +117,7 @@ public class OrderService {
         List<OrderResponse.OrderItemDto> itemDtos = order.getItems().stream()
                 .map(item -> OrderResponse.OrderItemDto.builder()
                         .productId(item.getProductId())
+                        .productName(item.getProductName())
                         .quantity(item.getQuantity())
                         .price(item.getPrice())
                         .build())

@@ -1,111 +1,185 @@
-import React, { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
-import api from '../services/api'
+import React, { useState, useEffect } from 'react';
+import {
+  Box,
+  Typography,
+  List,
+  Button,
+  Paper,
+  Divider,
+  Container,
+} from '@mui/material';
+import { ShoppingBag, ArrowBack } from '@mui/icons-material';
+import { useNavigate } from 'react-router-dom';
+import api from '../services/api';
+import CartItem from '../components/CartItem';
+import { CartItemSkeleton } from '../components/LoadingSkeleton';
+import ConfirmDialog from '../components/ConfirmDialog';
+import { useNotification } from '../context/NotificationContext';
 
 function Cart() {
-  const navigate = useNavigate()
-  const [cart, setCart] = useState([])
-  const [placing, setPlacing] = useState(false)
+  const navigate = useNavigate();
+  const [cart, setCart] = useState([]);
+  const [placing, setPlacing] = useState(false);
+  const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const showNotification = useNotification();
 
   useEffect(() => {
-    const savedCart = localStorage.getItem('cart')
+    const savedCart = localStorage.getItem('cart');
     if (savedCart) {
-      setCart(JSON.parse(savedCart))
+      setCart(JSON.parse(savedCart));
     }
-  }, [])
+    setLoading(false);
+  }, []);
 
   const updateQuantity = (productId, quantity) => {
     if (quantity <= 0) {
-      removeFromCart(productId)
-      return
+      removeFromCart(productId);
+      return;
     }
-    setCart(cart.map(item =>
+    const newCart = cart.map((item) =>
       item.id === productId ? { ...item, quantity } : item
-    ))
-    localStorage.setItem('cart', JSON.stringify(cart))
-  }
+    );
+    setCart(newCart);
+    localStorage.setItem('cart', JSON.stringify(newCart));
+  };
 
   const removeFromCart = (productId) => {
-    const newCart = cart.filter(item => item.id !== productId)
-    setCart(newCart)
-    localStorage.setItem('cart', JSON.stringify(newCart))
-  }
+    const newCart = cart.filter((item) => item.id !== productId);
+    setCart(newCart);
+    localStorage.setItem('cart', JSON.stringify(newCart));
+    showNotification('Item removed from cart', 'info');
+  };
 
   const getTotal = () => {
-    return cart.reduce((sum, item) => sum + (item.price * item.quantity), 0).toFixed(2)
-  }
+    return cart.reduce((sum, item) => sum + item.price * item.quantity, 0).toFixed(2);
+  };
+
+  const handlePlaceOrderClick = () => {
+    setConfirmDialogOpen(true);
+  };
 
   const placeOrder = async () => {
-    setPlacing(true)
+    setConfirmDialogOpen(false);
+    setPlacing(true);
     try {
-      const orderItems = cart.map(item => ({
+      const orderItems = cart.map((item) => ({
         productId: item.id,
-        quantity: item.quantity
-      }))
+        quantity: item.quantity,
+      }));
 
-      await api.post('/orders', { items: orderItems })
+      await api.post('/orders', { items: orderItems });
 
-      setCart([])
-      localStorage.removeItem('cart')
-      alert('Order placed successfully!')
-      navigate('/orders')
+      setCart([]);
+      localStorage.removeItem('cart');
+      showNotification('Order placed successfully!', 'success');
+      navigate('/orders');
     } catch (err) {
-      alert('Failed to place order: ' + (err.response?.data?.message || err.message))
+      const message = err.response?.data?.message || err.message;
+      showNotification(`Failed to place order: ${message}`, 'error');
     } finally {
-      setPlacing(false)
+      setPlacing(false);
     }
+  };
+
+  if (loading) {
+    return (
+      <Container>
+        <Typography variant="h4" sx={{ mb: 3 }}>
+          Shopping Cart
+        </Typography>
+        {Array.from({ length: 3 }).map((_, i) => (
+          <CartItemSkeleton key={i} />
+        ))}
+      </Container>
+    );
   }
 
   if (cart.length === 0) {
     return (
-      <div style={{ textAlign: 'center', padding: '50px' }}>
-        <h2>Your cart is empty</h2>
-        <button className="btn btn-primary" onClick={() => navigate('/')}>
+      <Box
+        sx={{
+          textAlign: 'center',
+          py: 8,
+        }}
+      >
+        <ShoppingBag sx={{ fontSize: 100, color: 'text.secondary', mb: 2 }} />
+        <Typography variant="h5" gutterBottom>
+          Your cart is empty
+        </Typography>
+        <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
+          Add some products to get started
+        </Typography>
+        <Button variant="contained" startIcon={<ArrowBack />} onClick={() => navigate('/')}>
           Continue Shopping
-        </button>
-      </div>
-    )
+        </Button>
+      </Box>
+    );
   }
 
   return (
-    <div>
-      <h2>Shopping Cart</h2>
+    <Container maxWidth="md">
+      <Typography variant="h4" sx={{ mb: 3 }} fontWeight="bold">
+        Shopping Cart
+      </Typography>
 
-      <div>
-        {cart.map(item => (
-          <div key={item.id} className="cart-item">
-            <div>
-              <h4>{item.name}</h4>
-              <p>${item.price} each</p>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-              <button onClick={() => updateQuantity(item.id, item.quantity - 1)}>-</button>
-              <span>{item.quantity}</span>
-              <button onClick={() => updateQuantity(item.id, item.quantity + 1)}>+</button>
-              <button onClick={() => removeFromCart(item.id)} className="btn btn-danger">
-                Remove
-              </button>
-            </div>
-          </div>
+      <List sx={{ mb: 3 }}>
+        {cart.map((item) => (
+          <CartItem
+            key={item.id}
+            item={{ product: item, quantity: item.quantity }}
+            onUpdateQuantity={updateQuantity}
+            onRemove={removeFromCart}
+          />
         ))}
-      </div>
+      </List>
 
-      <div className="cart-total">
-        Total: ${getTotal()}
-      </div>
+      <Paper elevation={3} sx={{ p: 3 }}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+          <Typography variant="h6">Subtotal:</Typography>
+          <Typography variant="h6" fontWeight="medium">
+            ${getTotal()}
+          </Typography>
+        </Box>
+        <Divider sx={{ my: 2 }} />
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+          <Typography variant="h5" fontWeight="bold">
+            Total:
+          </Typography>
+          <Typography variant="h5" color="primary.main" fontWeight="bold">
+            ${getTotal()}
+          </Typography>
+        </Box>
+        <Box sx={{ display: 'flex', gap: 2 }}>
+          <Button
+            variant="outlined"
+            startIcon={<ArrowBack />}
+            onClick={() => navigate('/')}
+            fullWidth
+          >
+            Continue Shopping
+          </Button>
+          <Button
+            variant="contained"
+            onClick={handlePlaceOrderClick}
+            disabled={placing}
+            fullWidth
+            size="large"
+          >
+            {placing ? 'Placing Order...' : 'Place Order'}
+          </Button>
+        </Box>
+      </Paper>
 
-      <div style={{ textAlign: 'right', marginTop: '20px' }}>
-        <button
-          className="btn btn-success"
-          style={{ padding: '15px 30px', fontSize: '18px' }}
-          onClick={placeOrder}
-          disabled={placing}
-        >
-          {placing ? 'Placing Order...' : 'Place Order'}
-        </button>
-      </div>
-    </div>
-  )
+      <ConfirmDialog
+        open={confirmDialogOpen}
+        title="Confirm Order"
+        message={`Are you sure you want to place this order for $${getTotal()}?`}
+        onConfirm={placeOrder}
+        onCancel={() => setConfirmDialogOpen(false)}
+      />
+    </Container>
+  );
 }
 
-export default Cart
+export default Cart;

@@ -1,78 +1,70 @@
-import React, { useState, useEffect } from 'react'
-import api from '../services/api'
+import React, { useState, useEffect } from 'react';
+import { Box, Typography, Container } from '@mui/material';
+import { Receipt } from '@mui/icons-material';
+import api from '../services/api';
+import OrderCard from '../components/OrderCard';
+import { OrderCardSkeleton } from '../components/LoadingSkeleton';
+import { useNotification } from '../context/NotificationContext';
 
 function Orders() {
-  const [orders, setOrders] = useState([])
-  const [loading, setLoading] = useState(true)
+  const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const showNotification = useNotification();
 
   useEffect(() => {
-    fetchOrders()
-  }, [])
+    fetchOrders();
+  }, []);
 
   const fetchOrders = async () => {
     try {
-      const response = await api.get('/orders')
-      setOrders(response.data)
+      const response = await api.get('/orders');
+      setOrders(response.data);
     } catch (err) {
-      console.error('Failed to fetch orders', err)
+      console.error('Failed to fetch orders', err);
+      showNotification('Failed to load orders', 'error');
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
+  };
+
+  if (loading) {
+    return (
+      <Container>
+        <Typography variant="h4" sx={{ mb: 3 }}>
+          Your Orders
+        </Typography>
+        {Array.from({ length: 3 }).map((_, i) => (
+          <OrderCardSkeleton key={i} />
+        ))}
+      </Container>
+    );
   }
 
-  if (loading) return <div>Loading...</div>
-
   return (
-    <div>
-      <h2>Your Orders</h2>
+    <Container maxWidth="md">
+      <Typography variant="h4" sx={{ mb: 3 }} fontWeight="bold">
+        Your Orders
+      </Typography>
 
       {orders.length === 0 ? (
-        <p>No orders yet.</p>
+        <Box sx={{ textAlign: 'center', py: 8 }}>
+          <Receipt sx={{ fontSize: 100, color: 'text.secondary', mb: 2 }} />
+          <Typography variant="h6" gutterBottom>
+            No orders yet
+          </Typography>
+          <Typography variant="body1" color="text.secondary">
+            Start shopping to create your first order
+          </Typography>
+        </Box>
       ) : (
-        <div>
-          {orders.map(order => (
-            <div key={order.id} className="card">
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <h3>Order #{order.id}</h3>
-                <span className={`status status-${order.status.toLowerCase()}`}
-                      style={{
-                        padding: '5px 10px',
-                        borderRadius: '4px',
-                        background: order.status === 'PENDING' ? '#f39c12' : '#2ecc71',
-                        color: 'white'
-                      }}>
-                  {order.status}
-                </span>
-              </div>
-              <p><strong>Total:</strong> ${order.totalAmount}</p>
-              <p><strong>Date:</strong> {new Date(order.createdAt).toLocaleString()}</p>
-
-              <table style={{ marginTop: '15px' }}>
-                <thead>
-                  <tr>
-                    <th>Product ID</th>
-                    <th>Quantity</th>
-                    <th>Price</th>
-                    <th>Subtotal</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {order.items.map((item, idx) => (
-                    <tr key={idx}>
-                      <td>{item.productId}</td>
-                      <td>{item.quantity}</td>
-                      <td>${item.price}</td>
-                      <td>${(item.price * item.quantity).toFixed(2)}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+        <Box>
+          {orders.map((order) => (
+            <OrderCard key={order.id} order={order} />
           ))}
-        </div>
+        </Box>
       )}
-    </div>
-  )
+    </Container>
+  );
 }
 
-export default Orders
+export default Orders;

@@ -1,100 +1,115 @@
-import React, { useState, useEffect } from 'react'
-import api from '../services/api'
+import React, { useState, useEffect } from 'react';
+import { Box, Typography, Grid, Pagination, Badge, IconButton } from '@mui/material';
+import { ShoppingCart } from '@mui/icons-material';
+import { useNavigate } from 'react-router-dom';
+import api from '../services/api';
+import ProductCard from '../components/ProductCard';
+import { ProductGridSkeleton } from '../components/LoadingSkeleton';
+import { useNotification } from '../context/NotificationContext';
 
 function Products() {
-  const [products, setProducts] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [page, setPage] = useState(0)
-  const [totalPages, setTotalPages] = useState(0)
-  const [cart, setCart] = useState([])
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(0);
+  const [cart, setCart] = useState([]);
+  const navigate = useNavigate();
+  const showNotification = useNotification();
 
   useEffect(() => {
-    const savedCart = localStorage.getItem('cart')
+    const savedCart = localStorage.getItem('cart');
     if (savedCart) {
-      setCart(JSON.parse(savedCart))
+      setCart(JSON.parse(savedCart));
     }
-  }, [])
+  }, []);
 
   useEffect(() => {
-    fetchProducts()
-  }, [page])
+    fetchProducts();
+  }, [page]);
 
   const fetchProducts = async () => {
+    setLoading(true);
     try {
-      const response = await api.get(`/products?page=${page}&size=10`)
-      setProducts(response.data.content)
-      setTotalPages(response.data.totalPages)
+      const response = await api.get(`/products?page=${page - 1}&size=8`);
+      setProducts(response.data.content);
+      setTotalPages(response.data.totalPages);
     } catch (err) {
-      console.error('Failed to fetch products', err)
+      console.error('Failed to fetch products', err);
+      showNotification('Failed to load products', 'error');
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const addToCart = (product) => {
-    const existing = cart.find(item => item.id === product.id)
-    let newCart
+    const existing = cart.find((item) => item.id === product.id);
+    let newCart;
     if (existing) {
-      newCart = cart.map(item =>
+      newCart = cart.map((item) =>
         item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item
-      )
+      );
+      showNotification(`Updated ${product.name} quantity in cart`, 'info');
     } else {
-      newCart = [...cart, { ...product, quantity: 1 }]
+      newCart = [...cart, { ...product, quantity: 1 }];
+      showNotification(`${product.name} added to cart`, 'success');
     }
-    setCart(newCart)
-    localStorage.setItem('cart', JSON.stringify(newCart))
-  }
+    setCart(newCart);
+    localStorage.setItem('cart', JSON.stringify(newCart));
+  };
 
-  if (loading) return <div>Loading...</div>
+  const handlePageChange = (event, value) => {
+    setPage(value);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   return (
-    <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-        <h2>Products</h2>
-        <button className="btn btn-primary" onClick={() => window.location.href = '/cart'}>
-          Cart ({cart.length})
-        </button>
-      </div>
-
-      <div className="product-grid">
-        {products.map(product => (
-          <div key={product.id} className="product-card">
-            <h3>{product.name}</h3>
-            <p>{product.description}</p>
-            <div className="price">${product.price}</div>
-            <p><small>Category: {product.category}</small></p>
-            <button
-              className="btn btn-primary"
-              style={{ width: '100%', marginTop: '10px' }}
-              onClick={() => addToCart(product)}
-            >
-              Add to Cart
-            </button>
-          </div>
-        ))}
-      </div>
-
-      <div style={{ marginTop: '20px', textAlign: 'center' }}>
-        <button
-          className="btn btn-primary"
-          onClick={() => setPage(p => Math.max(0, p - 1))}
-          disabled={page === 0}
-          style={{ marginRight: '10px' }}
+    <Box>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
+        <Typography variant="h4" component="h1" fontWeight="bold">
+          Products
+        </Typography>
+        <IconButton
+          color="primary"
+          onClick={() => navigate('/cart')}
+          sx={{
+            backgroundColor: 'primary.main',
+            color: 'white',
+            '&:hover': { backgroundColor: 'primary.dark' },
+          }}
         >
-          Previous
-        </button>
-        <span>Page {page + 1} of {totalPages}</span>
-        <button
-          className="btn btn-primary"
-          onClick={() => setPage(p => p + 1)}
-          disabled={page >= totalPages - 1}
-          style={{ marginLeft: '10px' }}
-        >
-          Next
-        </button>
-      </div>
-    </div>
-  )
+          <Badge badgeContent={cart.length} color="error">
+            <ShoppingCart />
+          </Badge>
+        </IconButton>
+      </Box>
+
+      {loading ? (
+        <ProductGridSkeleton count={8} />
+      ) : (
+        <>
+          <Grid container spacing={3}>
+            {products.map((product) => (
+              <Grid item key={product.id} xs={12} sm={6} md={4} lg={3}>
+                <ProductCard product={product} onAddToCart={addToCart} />
+              </Grid>
+            ))}
+          </Grid>
+
+          {totalPages > 1 && (
+            <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
+              <Pagination
+                count={totalPages}
+                page={page}
+                onChange={handlePageChange}
+                color="primary"
+                size="large"
+              />
+            </Box>
+          )}
+        </>
+      )}
+    </Box>
+  );
 }
 
-export default Products
+export default Products;
