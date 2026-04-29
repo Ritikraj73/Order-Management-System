@@ -53,4 +53,44 @@ public class OrderEventConsumer {
 
         return sb.toString();
     }
+    @KafkaListener(topics = "${kafka.topic.order-status-changed:order-status-changed-events}",
+            groupId = "${spring.kafka.consumer.group-id:notification-group}")
+    public void consumeOrderStatusChangedEvent(OrderStatusChangedEvent event) {
+        log.info("Received OrderStatusChangedEvent: orderId={}, userId={}, status: {}->{}",
+                event.getOrderId(), event.getUserId(), event.getOldStatus(), event.getNewStatus());
+        String subject = "Order #" + event.getOrderId() + " - " + formatStatus(event.getNewStatus());
+        String message = buildStatusChangeMessage(event);
+        notificationService.createNotification(
+                event.getUserId(),
+                event.getOrderId(),
+                "ORDER_STATUS_UPDATE",
+                subject,
+                message );
+        log.info("Notification created for order status change: {}", event.getOrderId());
+    }
+
+    private String formatStatus(String status) {
+        return switch (status) {
+            case "CONFIRMED" -> "Confirmed";
+            case "SHIPPED" -> "Shipped";
+            case "DELIVERED" -> "Delivered";
+            case "CANCELLED" -> "Cancelled";
+            default -> status; };
+    }
+    private String buildStatusChangeMessage(OrderStatusChangedEvent event) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("Your order #").append(event.getOrderId()).append(" status has been updated.\n\n");
+        sb.append("Status: ").append(event.getOldStatus()).append(" → ").append(event.getNewStatus()).append("\n\n");
+
+        sb.append(switch (event.getNewStatus()) {
+            case "CONFIRMED" -> "Your order has been confirmed and is being prepared for shipment.";
+            case "SHIPPED" -> "Your order has been shipped and is on its way to you!";
+            case "DELIVERED" -> "Your order has been delivered. Thank you for your purchase!";
+            case "CANCELLED" -> "Your order has been cancelled.";
+            default -> "Your order status has been updated.";
+        });
+        sb.append("\n\nBest regards,\nOMS Team");
+
+        return sb.toString();
+    }
 }

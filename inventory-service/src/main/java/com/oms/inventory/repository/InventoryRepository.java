@@ -20,4 +20,11 @@ public interface InventoryRepository extends JpaRepository<Inventory, Long> {
     int reserveStock(@Param("productId") Long productId,
                       @Param("quantity") Integer quantity,
                       @Param("version") Long version);
+
+    @Modifying
+    @Query("UPDATE Inventory i SET i.quantity = i.quantity - :quantity " +
+            "WHERE i.productId = :productId AND i.quantity >= :quantity")
+    int deductStock(@Param("productId") Long productId,
+                     @Param("quantity") Integer quantity);
+
 }

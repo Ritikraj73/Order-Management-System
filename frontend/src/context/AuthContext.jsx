@@ -18,10 +18,10 @@ export function AuthProvider({ children }) {
 
   const login = async (username, password) => {
     const response = await api.post('/auth/login', { username, password })
-    const { token, username: userName, role } = response.data
+    const { token, username: userName, userId, role } = response.data
 
     localStorage.setItem('token', token)
-    const userData = { username: userName, role }
+    const userData = { username: userName, userId, role }
     localStorage.setItem('user', JSON.stringify(userData))
     setUser(userData)
 
@@ -30,10 +30,10 @@ export function AuthProvider({ children }) {
 
   const register = async (username, email, password) => {
     const response = await api.post('/auth/register', { username, email, password })
-    const { token, username: userName, role } = response.data
+    const { token, username: userName, userId, role } = response.data
 
     localStorage.setItem('token', token)
-    const userData = { username: userName, role }
+    const userData = { username: userName, userId, role }
     localStorage.setItem('user', JSON.stringify(userData))
     setUser(userData)
 

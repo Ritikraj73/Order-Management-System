@@ -64,6 +64,7 @@ public class AuthService {
         return AuthResponse.builder()
                 .token(token)
                 .username(user.getUsername())
+                .userId(user.getId())
                 .role(user.getRole().name())
                 .expiresIn(jwtUtil.getExpiration())
                 .build();
@@ -85,6 +86,7 @@ public class AuthService {
         return AuthResponse.builder()
                 .token(token)
                 .username(user.getUsername())
+                .userId(user.getId())
                 .role(user.getRole().name())
                 .expiresIn(jwtUtil.getExpiration())
                 .build();

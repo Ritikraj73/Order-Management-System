@@ -36,6 +36,7 @@ spring:
 kafka:
   topic:
     order-created: order-created-events
+    order-status-changed: order-status-changed-events
 
 logging:
   level:

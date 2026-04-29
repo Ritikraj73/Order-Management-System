@@ -11,14 +11,19 @@ import {
   ListItemText,
   ListItemAvatar,
 } from '@mui/material';
-import { CheckCircle, AccessTime, LocalShipping } from '@mui/icons-material';
+import { CheckCircle, AccessTime, LocalShipping,Verified, Cancel } from '@mui/icons-material';
 
 const getStatusIcon = (status) => {
   switch (status) {
-    case 'COMPLETED':
+    case 'DELIVERED':
       return <CheckCircle />;
     case 'SHIPPED':
       return <LocalShipping />;
+    case 'CONFIRMED':
+      return <Verified />;
+    case 'CANCELLED':
+      return <Cancel />;
+    case 'PENDING':
     default:
       return <AccessTime />;
   }
@@ -26,14 +31,17 @@ const getStatusIcon = (status) => {
 
 const getStatusColor = (status) => {
   switch (status) {
-    case 'COMPLETED':
+    case 'DELIVERED':
       return 'success';
     case 'SHIPPED':
       return 'info';
-    case 'PROCESSING':
-      return 'warning';
+    case 'CONFIRMED':
+      return 'primary';
+    case 'CANCELLED':
+      return 'error';
+    case 'PENDING':
     default:
-      return 'default';
+      return 'warning';
   }
 };
 

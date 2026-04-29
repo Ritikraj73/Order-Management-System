@@ -27,6 +27,12 @@ spring:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
 
+
+kafka:
+  topic:
+    order-created: order-created-events
+    order-status-changed: order-status-changed-events
+
 services:
   product:
     url: http://localhost:8082

@@ -32,6 +32,7 @@ import {
 } from '@mui/icons-material';
 import { useAuth } from '../context/AuthContext';
 import { useThemeMode } from '../context/ThemeContext';
+import NotificationBell from './NotificationBell';
 
 const drawerWidth = 240;
 
@@ -146,6 +147,7 @@ const AppLayout = ({ children }) => {
           <IconButton color="inherit" onClick={toggleTheme} sx={{ mr: 1 }}>
             {mode === 'dark' ? <Brightness7 /> : <Brightness4 />}
           </IconButton>
+          <NotificationBell />
           {user ? (
             <>
               <Typography variant="body2" sx={{ mr: 2 }}>

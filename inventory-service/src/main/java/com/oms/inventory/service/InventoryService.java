@@ -95,4 +95,26 @@ public class InventoryService {
                 .version(saved.getVersion().intValue())
                 .build();
     }
+
+    @Transactional
+    public void deductStock(Long productId, Integer quantity) {
+        log.info("Deducting stock: productId={}, quantity={}", productId, quantity);
+
+        Inventory inventory = inventoryRepository.findByProductId(productId)
+                .orElseThrow(() -> new InventoryNotFoundException("Inventory not found for product: " + productId));
+
+        if (inventory.getQuantity() < quantity) {
+            log.error("Insufficient stock for product: {}, available: {}, requested: {}",
+                    productId, inventory.getQuantity(), quantity);
+            throw new InsufficientStockException("Insufficient stock. Available: " + inventory.getQuantity());
+        }
+
+        int updated = inventoryRepository.deductStock(productId, quantity);
+        if (updated == 0) {
+            log.error("Failed to deduct stock for product: {}", productId);
+            throw new InsufficientStockException("Failed to deduct stock");
+        }
+
+        log.info("Stock deducted successfully for product: {}", productId);
+    }
 }

@@ -27,4 +27,12 @@ api.interceptors.response.use(
   }
 )
 
+ // Notification api
+export const notificationAPI = {
+  getUserNotifications: () => {
+    const user = JSON.parse(localStorage.getItem('user') || '{}')
+    return api.get(`/notifications/user/${user.userId}`)
+  }
+}
+
 export default api

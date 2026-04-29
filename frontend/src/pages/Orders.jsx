@@ -13,6 +13,9 @@ function Orders() {
 
   useEffect(() => {
     fetchOrders();
+    // Auto refresh orders every 10 seconds to see status updates
+    const interval = setInterval(fetchOrders, 10000);
+    return () => clearInterval(interval);
   }, []);
 
   const fetchOrders = async () => {

@@ -54,4 +54,10 @@ public class NotificationService {
         return notificationRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Notification not found: " + id));
     }
+
+    @Transactional(readOnly = true)
+    public java.util.List<Notification> getUserNotifications(Long userId) {
+        log.info("Fetching notifications for user: {}", userId);
+        return notificationRepository.findByUserId(userId);
+    }
 }

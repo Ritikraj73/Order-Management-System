@@ -9,6 +9,7 @@ import com.oms.order.exception.InsufficientStockException;
 import com.oms.order.exception.OrderProcessingException;
 import com.oms.order.kafka.OrderCreatedEvent;
 import com.oms.order.kafka.OrderEventProducer;
+import com.oms.order.kafka.OrderStatusChangedEvent;
 import com.oms.order.repository.OrderRepository;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
@@ -112,6 +113,62 @@ public class OrderService {
                 .map(this::toResponse)
                 .orElseThrow(() -> new OrderProcessingException("Order not found: " + orderId));
     }
+
+    @Transactional
+    public OrderResponse updateOrderStatus(Long orderId, String newStatus, Long userId, String role) {
+        log.info("Updating order {} status to {} by user {} with role {}", orderId, newStatus, userId, role);
+
+       // For admin, allow any order; for user, only their own orders
+        Order order;
+        if ("ADMIN".equalsIgnoreCase(role)) {
+            order = orderRepository.findById(orderId)
+                    .orElseThrow(() -> new OrderProcessingException("Order not found: " + orderId));
+        } else {
+            order = orderRepository.findByIdAndUserId(orderId, userId)
+                    .orElseThrow(() -> new OrderProcessingException("Order not found: " + orderId));
+        }
+
+        Order.OrderStatus oldStatus = order.getStatus();
+        Order.OrderStatus newOrderStatus;
+
+        try {
+            newOrderStatus = Order.OrderStatus.valueOf(newStatus.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new OrderProcessingException("Invalid order status: " + newStatus);
+        }
+
+        // Validate status transition
+        if (!isValidStatusTransition(oldStatus, newOrderStatus)) {
+            throw new OrderProcessingException("Invalid status transition from " + oldStatus + " to " + newOrderStatus);
+        }
+
+        order.setStatus(newOrderStatus);
+        Order savedOrder = orderRepository.save(order);
+
+        // Publish status change event
+        OrderStatusChangedEvent event = OrderStatusChangedEvent.builder()
+                .orderId(savedOrder.getId())
+                .userId(savedOrder.getUserId())
+                .oldStatus(oldStatus.name())
+                .newStatus(newOrderStatus.name())
+                .changedAt(java.time.LocalDateTime.now())
+                .build();
+
+        orderEventProducer.publishOrderStatusChanged(event);
+
+        log.info("Order {} status updated from {} to {}", orderId, oldStatus, newOrderStatus);
+        return toResponse(savedOrder);
+    }
+
+    private boolean isValidStatusTransition(Order.OrderStatus from, Order.OrderStatus to) {
+    // Define valid transitions
+        return switch (from) {
+          case PENDING -> to == Order.OrderStatus.CONFIRMED || to == Order.OrderStatus.CANCELLED;
+          case CONFIRMED -> to == Order.OrderStatus.SHIPPED || to == Order.OrderStatus.CANCELLED;
+          case SHIPPED -> to == Order.OrderStatus.DELIVERED;
+          case DELIVERED, CANCELLED -> false; // Terminal states
+    };
+}
 
     private OrderResponse toResponse(Order order) {
         List<OrderResponse.OrderItemDto> itemDtos = order.getItems().stream()
